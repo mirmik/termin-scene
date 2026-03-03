@@ -5,6 +5,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(TERMIN_SCENE_BUILD_SHARED "Build shared library" ON)
+option(TERMIN_SCENE_BUILD_TESTS "Build tests" ON)
 
 # Dependencies
 find_package(termin_base REQUIRED)
@@ -20,7 +21,6 @@ set(TERMIN_SCENE_SOURCES
     src/tc_scene.c
     src/tc_scene_extension.c
     src/tc_type_registry.c
-    src/tc_value.c
 )
 
 set(TERMIN_SCENE_HEADERS
@@ -103,3 +103,20 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/termin_sceneConfigVersion.cmake
     DESTINATION lib/cmake/termin_scene
 )
+
+if(TERMIN_SCENE_BUILD_TESTS)
+    enable_testing()
+
+    add_executable(termin_scene_data_structures_test tests/test_data_structures.c)
+    target_link_libraries(termin_scene_data_structures_test PRIVATE termin_scene)
+    add_test(NAME termin_scene_data_structures_test COMMAND termin_scene_data_structures_test)
+
+    add_executable(termin_scene_archetype_test tests/test_archetype.c)
+    target_link_libraries(termin_scene_archetype_test PRIVATE termin_scene)
+    add_test(NAME termin_scene_archetype_test COMMAND termin_scene_archetype_test)
+
+    set_target_properties(
+        termin_scene_data_structures_test termin_scene_archetype_test
+        PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+endif()
