@@ -1,0 +1,7 @@
+/home/mirmik/project/termin-env/termin-scene/build/Release/CMakeFiles/termin_scene.dir
+/home/mirmik/project/termin-env/termin-scene/build/Release/CMakeFiles/edit_cache.dir
+/home/mirmik/project/termin-env/termin-scene/build/Release/CMakeFiles/rebuild_cache.dir
+/home/mirmik/project/termin-env/termin-scene/build/Release/CMakeFiles/list_install_components.dir
+/home/mirmik/project/termin-env/termin-scene/build/Release/CMakeFiles/install.dir
+/home/mirmik/project/termin-env/termin-scene/build/Release/CMakeFiles/install/local.dir
+/home/mirmik/project/termin-env/termin-scene/build/Release/CMakeFiles/install/strip.dir
