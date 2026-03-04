@@ -1,7 +1,7 @@
 site_name: termin-scene
 site_description: ECS scene-core library documentation
-repo_url: https://github.com/rfmeas/termin-scene
-repo_name: rfmeas/termin-scene
+repo_url: https://github.com/mirmik/termin-scene
+repo_name: mirmik/termin-scene
 theme:
   name: material
   language: ru
