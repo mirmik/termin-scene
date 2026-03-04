@@ -17,6 +17,7 @@ markdown_extensions:
       permalink: true
 nav:
   - Главная: index.md
+  - Философия и контекст: philosophy.md
   - Быстрый старт: getting-started.md
   - Архитектура: architecture.md
   - Lifecycle: lifecycle.md

@@ -12,7 +12,8 @@
 ## Что читать сначала
 
 1. [Быстрый старт](getting-started.md)
-2. [Архитектура](architecture.md)
-3. [Lifecycle](lifecycle.md)
-4. [Handles и валидность](handles.md)
-5. [Владение и память](ownership.md)
+2. [Философия и контекст](philosophy.md)
+3. [Архитектура](architecture.md)
+4. [Lifecycle](lifecycle.md)
+5. [Handles и валидность](handles.md)
+6. [Владение и память](ownership.md)
