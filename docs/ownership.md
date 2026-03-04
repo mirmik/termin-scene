@@ -10,20 +10,27 @@
 ## Владение компонентами
 
 Контракт для `tc_component*`:
-- `tc_entity_pool_add_component` вызывает `retain`, если `factory_retained == false`.
-- `tc_entity_pool_remove_component` вызывает `release`.
-- `tc_entity_pool_free(entity)` удаляет все компоненты сущности и вызывает `release` для каждого.
 
-Практическое правило: внешний код не должен рассчитывать на время жизни компонента без учета ref-count контракта.
+| Операция | Действие |
+|----------|----------|
+| `tc_entity_pool_add_component` | Вызывает `retain` (если `factory_retained == false`) |
+| `tc_entity_pool_remove_component` | Вызывает `release` |
+| `tc_entity_pool_free(entity)` | Удаляет все компоненты, вызывает `release` для каждого |
+
+Практическое правило: внешний код не должен рассчитывать на время жизни компонента без учёта ref-count контракта.
 
 ## Владение SoA-данными
 
 - SoA-данные живут внутри архетипов и принадлежат архетипам.
-- При переходе сущности между архетипами общие компоненты копируются.
-- `tc_archetype_free_row` вызывает `destroy`.
-- `tc_archetype_detach_row` не вызывает `destroy` (используется при миграциях).
+- При переходе сущности между архетипами общие компоненты **копируются**.
+- `tc_archetype_free_row` вызывает `destroy` (полное удаление).
+- `tc_archetype_detach_row` **не** вызывает `destroy` (используется при миграциях).
 
 ## Владение extensions
 
-- `tc_scene_ext_attach` создает instance через `create`.
-- `tc_scene_ext_detach`, `tc_scene_ext_detach_all` и shutdown реестра вызывают `destroy`.
+| Операция | Действие |
+|----------|----------|
+| `tc_scene_ext_attach` | Создаёт instance через `create` |
+| `tc_scene_ext_detach` | Вызывает `destroy` |
+| `tc_scene_ext_detach_all` | Вызывает `destroy` для всех extensions |
+| Shutdown реестра | Вызывает `destroy` для оставшихся extensions |
