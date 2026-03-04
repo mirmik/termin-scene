@@ -1,27 +1,29 @@
 # Владение и память
 
-## Компоненты
+Этот раздел фиксирует, кто владеет объектами и кто отвечает за освобождение.
 
-Контракт по `tc_component*`:
-
-- `add_component` делает `retain`, если `factory_retained == false`.
-- `remove_component` делает `release`.
-- `entity_pool_free` снимает все компоненты и делает `release` для каждого.
-
-Это означает, что хранение внешних сырых указателей на компонент требует аккуратной синхронизации с ref-count моделью.
-
-## Scene ownership
+## Владение сценой и сущностями
 
 - Сцена владеет своим `tc_entity_pool`.
-- При `tc_scene_free` пул удаляется через registry (если зарегистрирован), чтобы инвалидировать handle.
+- При `tc_scene_free` пул уничтожается, и все сущности сцены удаляются.
 
-## SoA
+## Владение компонентами
 
-- При переходах между архетипами данные копируются для общих типов.
-- `free_row` вызывает `destroy`.
-- `detach_row` не вызывает `destroy` (используется при миграции между архетипами).
+Контракт для `tc_component*`:
+- `tc_entity_pool_add_component` вызывает `retain`, если `factory_retained == false`.
+- `tc_entity_pool_remove_component` вызывает `release`.
+- `tc_entity_pool_free(entity)` удаляет все компоненты сущности и вызывает `release` для каждого.
 
-## Extension ownership
+Практическое правило: внешний код не должен рассчитывать на время жизни компонента без учета ref-count контракта.
 
-- `tc_scene_ext_attach` вызывает `create`.
-- `detach`/`detach_all`/`registry_shutdown` вызывает `destroy`.
+## Владение SoA-данными
+
+- SoA-данные живут внутри архетипов и принадлежат архетипам.
+- При переходе сущности между архетипами общие компоненты копируются.
+- `tc_archetype_free_row` вызывает `destroy`.
+- `tc_archetype_detach_row` не вызывает `destroy` (используется при миграциях).
+
+## Владение extensions
+
+- `tc_scene_ext_attach` создает instance через `create`.
+- `tc_scene_ext_detach`, `tc_scene_ext_detach_all` и shutdown реестра вызывают `destroy`.

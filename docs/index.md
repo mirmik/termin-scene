@@ -1,15 +1,16 @@
 # termin-scene
 
-`termin-scene` — компактное ядро scene/ECS для движка Termin.
+`termin-scene` — scene-core библиотека для движка Termin.
 
-Документация построена по реальной структуре кода:
-- `tc_scene`: сцены, lifecycle-циклы, фильтрованные итерации компонентов.
-- `tc_entity_pool`: сущности, иерархия, трансформы, флаги, lookup по `uuid`/`pick_id`.
-- `tc_component`: object-компоненты с vtable и ref-count контрактом.
-- `tc_archetype`: SoA-компоненты и архетипы по `type_mask`.
-- `tc_scene_extension`: расширения сцены (attach/detach/update/serialize).
+Основная модель:
+- сцена (`tc_scene`) хранит сущности и управляет update-циклом;
+- сущности живут в `tc_entity_pool`;
+- поведение задается компонентами (`tc_component`);
+- данные для плотных проходов можно хранить в SoA-архетипах (`tc_archetype`).
 
-## Что читать сначала
+Документация описывает фактические контракты текущей реализации: lifecycle, валидность handle, владение памятью и ограничения API.
+
+## Рекомендуемый маршрут
 
 1. [Быстрый старт](getting-started.md)
 2. [Философия и контекст](philosophy.md)
