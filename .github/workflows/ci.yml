@@ -22,17 +22,12 @@ jobs:
           token: ${{ secrets.CLONETOKEN }}
           path: deps/termin-base
 
-      - name: Checkout termin-graphics
+      - name: Checkout termin-inspect
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/termin-graphics
+          repository: ${{ github.repository_owner }}/termin-inspect
           token: ${{ secrets.CLONETOKEN }}
-          path: deps/termin-graphics
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-dev
+          path: deps/termin-inspect
 
       - name: Configure, build and install termin-base
         run: |
@@ -45,22 +40,24 @@ jobs:
           cmake --install deps/termin-base/build
           ctest --test-dir deps/termin-base/build --output-on-failure
 
-      - name: Configure, build and test termin-graphics
+      - name: Configure, build and install termin-inspect
         run: |
-          cmake -S deps/termin-graphics -B deps/termin-graphics/build \
+          cmake -S deps/termin-inspect -B deps/termin-inspect/build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTS=ON \
+            -DTI_BUILD_TESTS=ON \
+            -DTI_BUILD_PYTHON=OFF \
             -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/install \
             -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/deps/install
-          cmake --build deps/termin-graphics/build --parallel
-          ctest --test-dir deps/termin-graphics/build --output-on-failure
-          cmake --install deps/termin-graphics/build
+          cmake --build deps/termin-inspect/build --parallel
+          ctest --test-dir deps/termin-inspect/build --output-on-failure
+          cmake --install deps/termin-inspect/build
 
       - name: Configure, build and test termin-scene
         run: |
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DTERMIN_SCENE_BUILD_TESTS=ON \
+            -DTERMIN_SCENE_ENABLE_PYTHON=OFF \
             -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/deps/install
           cmake --build build --parallel
           ctest --test-dir build --output-on-failure
