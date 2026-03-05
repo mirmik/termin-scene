@@ -2,9 +2,7 @@ name: CI
 
 on:
   push:
-    branches:
-      - master
-      - main
+    branches: [master, main]
   pull_request:
 
 env:
@@ -13,54 +11,45 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - name: Checkout termin-scene
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Checkout termin-base
-        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          repository: ${{ github.repository_owner }}/termin-base
-          token: ${{ secrets.CLONETOKEN }}
-          path: deps/termin-base
+          python-version: "3.10"
 
-      - name: Checkout termin-inspect
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository_owner }}/termin-inspect
-          token: ${{ secrets.CLONETOKEN }}
-          path: deps/termin-inspect
+      - name: Install Python dependencies
+        run: pip install --upgrade pip setuptools wheel nanobind
 
-      - name: Configure, build and install termin-base
+      - name: Download termin-inspect SDK
+        env:
+          GH_TOKEN: ${{ secrets.CLONETOKEN }}
         run: |
-          cmake -S deps/termin-base -B deps/termin-base/build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DTERMIN_BASE_BUILD_TESTS=ON \
-            -DTCBASE_BUILD_PYTHON=OFF \
-            -DCMAKE_INSTALL_PREFIX=/opt/termin
-          cmake --build deps/termin-base/build --parallel
-          sudo cmake --install deps/termin-base/build
-          ctest --test-dir deps/termin-base/build --output-on-failure
+          gh release download sdk-latest -R ${{ github.repository_owner }}/termin-inspect -p sdk-inspect.tar.gz -D /tmp
+          sudo tar xzf /tmp/sdk-inspect.tar.gz -C /
 
-      - name: Configure, build and install termin-inspect
-        run: |
-          cmake -S deps/termin-inspect -B deps/termin-inspect/build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DTI_BUILD_TESTS=ON \
-            -DTI_BUILD_PYTHON=OFF \
-            -DCMAKE_INSTALL_PREFIX=/opt/termin \
-            -DCMAKE_PREFIX_PATH=/opt/termin
-          cmake --build deps/termin-inspect/build --parallel
-          ctest --test-dir deps/termin-inspect/build --output-on-failure
-          sudo cmake --install deps/termin-inspect/build
-
-      - name: Configure, build and test termin-scene
+      - name: Build and install C library
         run: |
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/opt/termin \
+            -DCMAKE_PREFIX_PATH=/opt/termin \
             -DTERMIN_SCENE_BUILD_TESTS=ON \
-            -DTERMIN_BUILD_PYTHON=OFF \
-            -DCMAKE_PREFIX_PATH=/opt/termin
+            -DTERMIN_BUILD_PYTHON=OFF
           cmake --build build --parallel
-          ctest --test-dir build --output-on-failure
+          sudo cmake --install build
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Publish SDK artifact
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tar czf /tmp/sdk-scene.tar.gz -C / opt/termin
+          gh release create sdk-latest --title "SDK (latest)" --notes "Auto-built from $(git rev-parse --short HEAD)" --prerelease 2>/dev/null || true
+          gh release upload sdk-latest /tmp/sdk-scene.tar.gz --clobber
