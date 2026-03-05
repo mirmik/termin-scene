@@ -8,14 +8,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(TERMIN_SCENE_BUILD_SHARED "Build shared library" ON)
 option(TERMIN_SCENE_BUILD_TESTS "Build tests" ON)
+option(TERMIN_SCENE_BUILD_PYTHON "Build Python bindings (_scene_native)" OFF)
+# Backward-compatible alias
+if(DEFINED TERMIN_SCENE_ENABLE_PYTHON)
+    set(TERMIN_SCENE_BUILD_PYTHON ${TERMIN_SCENE_ENABLE_PYTHON})
+endif()
 
 # Dependencies
 find_package(termin_base REQUIRED)
 find_package(termin_inspect REQUIRED)
 
-# Optional: nanobind for Python component support
-option(TERMIN_SCENE_ENABLE_PYTHON "Enable Python component support (requires nanobind)" ON)
-if(TERMIN_SCENE_ENABLE_PYTHON)
+# Optional: nanobind for Python bindings
+if(TERMIN_SCENE_BUILD_PYTHON)
     if(NOT Python_EXECUTABLE)
         if(WIN32)
             set(Python_EXECUTABLE "python")
@@ -23,15 +27,13 @@ if(TERMIN_SCENE_ENABLE_PYTHON)
             set(Python_EXECUTABLE "python3")
         endif()
     endif()
-    find_package(Python 3.8 COMPONENTS Interpreter Development QUIET)
-    if(Python_FOUND)
-        execute_process(
-            COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
-            OUTPUT_VARIABLE nanobind_DIR
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-        find_package(nanobind CONFIG QUIET)
-    endif()
+    find_package(Python 3.8 COMPONENTS Interpreter Development REQUIRED)
+    execute_process(
+        COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
+        OUTPUT_VARIABLE nanobind_DIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    find_package(nanobind CONFIG REQUIRED)
 endif()
 
 set(TERMIN_SCENE_SOURCES
@@ -120,34 +122,29 @@ target_include_directories(termin_scene
 
 target_link_libraries(termin_scene PUBLIC tcbase::termin_base termin_inspect::termin_inspect)
 
-if(nanobind_FOUND)
-    message(STATUS "termin_scene: nanobind found, enabling Python component support")
-    target_compile_definitions(termin_scene PRIVATE TERMIN_HAS_NANOBIND)
-    # Build nanobind shared core if not yet available
-    if(NOT TARGET nanobind)
-        nanobind_build_library(nanobind)
-    endif()
-    target_link_libraries(termin_scene PRIVATE nanobind Python::Python)
-else()
-    message(STATUS "termin_scene: nanobind not found, Python component support disabled")
-endif()
-
 if(UNIX AND NOT APPLE)
     target_link_libraries(termin_scene PRIVATE m)
 endif()
 
 # _scene_native Python module (Entity, Component, TcScene core, registries)
-if(nanobind_FOUND)
+if(TERMIN_SCENE_BUILD_PYTHON)
+    if(NOT TARGET termin_inspect::termin_inspect_python)
+        message(FATAL_ERROR "termin_scene python bindings require termin_inspect::termin_inspect_python target")
+    endif()
+    if(NOT TARGET nanobind)
+        nanobind_build_library(nanobind)
+    endif()
     nanobind_add_module(_scene_native NB_SHARED
         cpp/bindings/scene_module.cpp
         cpp/bindings/entity_bindings.cpp
         cpp/bindings/tc_component_ref_bindings.cpp
         cpp/bindings/component_bindings.cpp
+        cpp/bindings/component_registry_python.cpp
         cpp/bindings/tc_scene_bindings.cpp
         cpp/bindings/soa_bindings.cpp
         cpp/bindings/tc_component_python_bindings.cpp
     )
-    target_link_libraries(_scene_native PRIVATE termin_scene termin_inspect::termin_inspect)
+    target_link_libraries(_scene_native PRIVATE termin_scene termin_inspect::termin_inspect termin_inspect::termin_inspect_python)
     target_compile_definitions(_scene_native PRIVATE TERMIN_HAS_NANOBIND)
 
     set(TERMIN_SCENE_PY_RPATH "$ORIGIN;$ORIGIN/..;$ORIGIN/../..;$ORIGIN/../../..")
@@ -161,7 +158,7 @@ if(nanobind_FOUND)
     endif()
 endif()
 
-if(nanobind_FOUND AND TARGET nanobind)
+if(TERMIN_SCENE_BUILD_PYTHON AND TARGET nanobind)
     install(TARGETS nanobind
         EXPORT termin_sceneTargets
         LIBRARY DESTINATION lib
