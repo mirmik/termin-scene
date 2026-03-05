@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
-project(termin_scene VERSION 0.1.0 LANGUAGES C)
+project(termin_scene VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(TERMIN_SCENE_BUILD_SHARED "Build shared library" ON)
 option(TERMIN_SCENE_BUILD_TESTS "Build tests" ON)
@@ -10,6 +12,21 @@ option(TERMIN_SCENE_BUILD_TESTS "Build tests" ON)
 # Dependencies
 find_package(termin_base REQUIRED)
 find_package(termin_graphics REQUIRED)
+find_package(termin_inspect REQUIRED)
+
+# Optional: nanobind for Python component support
+option(TERMIN_SCENE_ENABLE_PYTHON "Enable Python component support (requires nanobind)" ON)
+if(TERMIN_SCENE_ENABLE_PYTHON)
+    find_package(Python COMPONENTS Interpreter Development QUIET)
+    if(Python_FOUND)
+        execute_process(
+            COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
+            OUTPUT_VARIABLE nanobind_DIR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        find_package(nanobind CONFIG QUIET)
+    endif()
+endif()
 
 set(TERMIN_SCENE_SOURCES
     src/termin_scene_version.c
@@ -21,6 +38,30 @@ set(TERMIN_SCENE_SOURCES
     src/tc_scene.c
     src/tc_scene_extension.c
     src/tc_type_registry.c
+    src/tc_component_python.c
+)
+
+set(TERMIN_SCENE_CXX_SOURCES
+    cpp/geom/general_transform3.cpp
+    cpp/entity/entity.cpp
+    cpp/entity/component.cpp
+    cpp/entity/component_registry.cpp
+    cpp/entity/vtable_utils.cpp
+    cpp/entity/input_handler.cpp
+    cpp/tc_scene.cpp
+)
+
+set(TERMIN_SCENE_CXX_HEADERS
+    include/termin/export.hpp
+    include/termin/geom/general_transform3.hpp
+    include/termin/entity/entity.hpp
+    include/termin/entity/component.hpp
+    include/termin/entity/component_registry.hpp
+    include/termin/entity/component_registry_python.hpp
+    include/termin/entity/vtable_utils.hpp
+    include/termin/entity/input_handler.hpp
+    include/termin/tc_scene.hpp
+    include/inspect/tc_inspect_context.h
 )
 
 set(TERMIN_SCENE_HEADERS
@@ -37,13 +78,20 @@ set(TERMIN_SCENE_HEADERS
     include/tc_type_registry.h
     include/tc_types.h
     include/tc_value.h
+    include/tc_component_python.h
 )
 
 if(TERMIN_SCENE_BUILD_SHARED)
-    add_library(termin_scene SHARED ${TERMIN_SCENE_SOURCES} ${TERMIN_SCENE_HEADERS})
+    add_library(termin_scene SHARED
+        ${TERMIN_SCENE_SOURCES} ${TERMIN_SCENE_HEADERS}
+        ${TERMIN_SCENE_CXX_SOURCES} ${TERMIN_SCENE_CXX_HEADERS}
+    )
     target_compile_definitions(termin_scene PRIVATE TERMIN_SCENE_EXPORTS TC_EXPORTS)
 else()
-    add_library(termin_scene STATIC ${TERMIN_SCENE_SOURCES} ${TERMIN_SCENE_HEADERS})
+    add_library(termin_scene STATIC
+        ${TERMIN_SCENE_SOURCES} ${TERMIN_SCENE_HEADERS}
+        ${TERMIN_SCENE_CXX_SOURCES} ${TERMIN_SCENE_CXX_HEADERS}
+    )
 endif()
 
 add_library(termin_scene::termin_scene ALIAS termin_scene)
@@ -53,6 +101,8 @@ set_target_properties(termin_scene PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    INSTALL_RPATH "$ORIGIN"
+    BUILD_WITH_INSTALL_RPATH TRUE
 )
 
 target_include_directories(termin_scene
@@ -61,10 +111,47 @@ target_include_directories(termin_scene
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(termin_scene PUBLIC tgfx::termin_graphics tcbase::termin_base)
+target_link_libraries(termin_scene PUBLIC tgfx::termin_graphics tcbase::termin_base termin_inspect::termin_inspect)
+
+if(nanobind_FOUND)
+    message(STATUS "termin_scene: nanobind found, enabling Python component support")
+    target_compile_definitions(termin_scene PRIVATE TERMIN_HAS_NANOBIND)
+    # Build nanobind-static if not yet available
+    if(NOT TARGET nanobind-static)
+        nanobind_build_library(nanobind-static)
+    endif()
+    target_link_libraries(termin_scene PRIVATE nanobind-static Python::Python)
+else()
+    message(STATUS "termin_scene: nanobind not found, Python component support disabled")
+endif()
 
 if(UNIX AND NOT APPLE)
     target_link_libraries(termin_scene PRIVATE m)
+endif()
+
+# _scene_native Python module (Entity, Component, TcScene core, registries)
+if(nanobind_FOUND)
+    nanobind_add_module(_scene_native
+        cpp/bindings/scene_module.cpp
+        cpp/bindings/entity_bindings.cpp
+        cpp/bindings/tc_component_ref_bindings.cpp
+        cpp/bindings/component_bindings.cpp
+        cpp/bindings/tc_scene_bindings.cpp
+        cpp/bindings/soa_bindings.cpp
+        cpp/bindings/tc_component_python_bindings.cpp
+    )
+    target_link_libraries(_scene_native PRIVATE termin_scene termin_inspect::termin_inspect)
+    target_compile_definitions(_scene_native PRIVATE TERMIN_HAS_NANOBIND)
+
+    set(TERMIN_SCENE_PY_RPATH "$ORIGIN;$ORIGIN/..;$ORIGIN/../..;$ORIGIN/../../..")
+    set_target_properties(_scene_native PROPERTIES
+        INSTALL_RPATH "${TERMIN_SCENE_PY_RPATH}"
+        BUILD_WITH_INSTALL_RPATH TRUE
+    )
+
+    if(TERMIN_SCENE_PYTHON_PREFIX)
+        install(TARGETS _scene_native DESTINATION ${TERMIN_SCENE_PYTHON_PREFIX}/scene)
+    endif()
 endif()
 
 install(TARGETS termin_scene
