@@ -2,13 +2,13 @@
 set -e
 
 BUILD_TYPE="Release"
-PREFIX="/usr/local"
+PREFIX="/opt/termin"
 
 for arg in "$@"; do
     case "$arg" in
         --debug) BUILD_TYPE="Debug" ;;
         --prefix=*) PREFIX="${arg#*=}" ;;
-        *) echo "Usage: $0 [--debug] [--prefix=/usr/local]"; exit 1 ;;
+        *) echo "Usage: $0 [--debug] [--prefix=/opt/termin]"; exit 1 ;;
     esac
 done
 

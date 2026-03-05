@@ -17,7 +17,14 @@ find_package(termin_inspect REQUIRED)
 # Optional: nanobind for Python component support
 option(TERMIN_SCENE_ENABLE_PYTHON "Enable Python component support (requires nanobind)" ON)
 if(TERMIN_SCENE_ENABLE_PYTHON)
-    find_package(Python COMPONENTS Interpreter Development QUIET)
+    if(NOT Python_EXECUTABLE)
+        if(WIN32)
+            set(Python_EXECUTABLE "python")
+        else()
+            set(Python_EXECUTABLE "python3")
+        endif()
+    endif()
+    find_package(Python 3.8 COMPONENTS Interpreter Development QUIET)
     if(Python_FOUND)
         execute_process(
             COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
