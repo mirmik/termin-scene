@@ -7,6 +7,9 @@ on:
       - main
   pull_request:
 
+env:
+  LD_LIBRARY_PATH: /opt/termin/lib
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -57,7 +60,7 @@ jobs:
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DTERMIN_SCENE_BUILD_TESTS=ON \
-            -DTERMIN_SCENE_ENABLE_PYTHON=OFF \
+            -DTERMIN_BUILD_PYTHON=OFF \
             -DCMAKE_PREFIX_PATH=/opt/termin
           cmake --build build --parallel
           ctest --test-dir build --output-on-failure
