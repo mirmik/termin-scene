@@ -8,18 +8,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(TERMIN_SCENE_BUILD_SHARED "Build shared library" ON)
 option(TERMIN_SCENE_BUILD_TESTS "Build tests" ON)
-option(TERMIN_SCENE_BUILD_PYTHON "Build Python bindings (_scene_native)" OFF)
-# Backward-compatible alias
-if(DEFINED TERMIN_SCENE_ENABLE_PYTHON)
-    set(TERMIN_SCENE_BUILD_PYTHON ${TERMIN_SCENE_ENABLE_PYTHON})
-endif()
+option(TERMIN_BUILD_PYTHON "Build Python bindings (_scene_native)" OFF)
 
 # Dependencies
 find_package(termin_base REQUIRED)
 find_package(termin_inspect REQUIRED)
 
 # Optional: nanobind for Python bindings
-if(TERMIN_SCENE_BUILD_PYTHON)
+if(TERMIN_BUILD_PYTHON)
     if(NOT Python_EXECUTABLE)
         if(WIN32)
             set(Python_EXECUTABLE "python")
@@ -127,7 +123,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # _scene_native Python module (Entity, Component, TcScene core, registries)
-if(TERMIN_SCENE_BUILD_PYTHON)
+if(TERMIN_BUILD_PYTHON)
     if(NOT TARGET termin_inspect::termin_inspect_python)
         message(FATAL_ERROR "termin_scene python bindings require termin_inspect::termin_inspect_python target")
     endif()
@@ -159,7 +155,7 @@ if(TERMIN_SCENE_BUILD_PYTHON)
     endif()
 endif()
 
-if(TERMIN_SCENE_BUILD_PYTHON AND TARGET nanobind)
+if(TERMIN_BUILD_PYTHON AND TARGET nanobind)
     install(TARGETS nanobind
         EXPORT termin_sceneTargets
         LIBRARY DESTINATION lib
