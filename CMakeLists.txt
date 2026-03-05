@@ -123,11 +123,11 @@ target_link_libraries(termin_scene PUBLIC tgfx::termin_graphics tcbase::termin_b
 if(nanobind_FOUND)
     message(STATUS "termin_scene: nanobind found, enabling Python component support")
     target_compile_definitions(termin_scene PRIVATE TERMIN_HAS_NANOBIND)
-    # Build nanobind-static if not yet available
-    if(NOT TARGET nanobind-static)
-        nanobind_build_library(nanobind-static)
+    # Build nanobind shared core if not yet available
+    if(NOT TARGET nanobind)
+        nanobind_build_library(nanobind)
     endif()
-    target_link_libraries(termin_scene PRIVATE nanobind-static Python::Python)
+    target_link_libraries(termin_scene PRIVATE nanobind Python::Python)
 else()
     message(STATUS "termin_scene: nanobind not found, Python component support disabled")
 endif()
@@ -138,7 +138,7 @@ endif()
 
 # _scene_native Python module (Entity, Component, TcScene core, registries)
 if(nanobind_FOUND)
-    nanobind_add_module(_scene_native
+    nanobind_add_module(_scene_native NB_SHARED
         cpp/bindings/scene_module.cpp
         cpp/bindings/entity_bindings.cpp
         cpp/bindings/tc_component_ref_bindings.cpp
@@ -159,6 +159,14 @@ if(nanobind_FOUND)
     if(TERMIN_SCENE_PYTHON_PREFIX)
         install(TARGETS _scene_native DESTINATION ${TERMIN_SCENE_PYTHON_PREFIX}/scene)
     endif()
+endif()
+
+if(nanobind_FOUND AND TARGET nanobind)
+    install(TARGETS nanobind
+        EXPORT termin_sceneTargets
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+    )
 endif()
 
 install(TARGETS termin_scene
