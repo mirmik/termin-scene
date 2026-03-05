@@ -35,9 +35,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DTERMIN_BASE_BUILD_TESTS=ON \
             -DTCBASE_BUILD_PYTHON=OFF \
-            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/install
+            -DCMAKE_INSTALL_PREFIX=/opt/termin
           cmake --build deps/termin-base/build --parallel
-          cmake --install deps/termin-base/build
+          sudo cmake --install deps/termin-base/build
           ctest --test-dir deps/termin-base/build --output-on-failure
 
       - name: Configure, build and install termin-inspect
@@ -46,11 +46,11 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DTI_BUILD_TESTS=ON \
             -DTI_BUILD_PYTHON=OFF \
-            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/install \
-            -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/deps/install
+            -DCMAKE_INSTALL_PREFIX=/opt/termin \
+            -DCMAKE_PREFIX_PATH=/opt/termin
           cmake --build deps/termin-inspect/build --parallel
           ctest --test-dir deps/termin-inspect/build --output-on-failure
-          cmake --install deps/termin-inspect/build
+          sudo cmake --install deps/termin-inspect/build
 
       - name: Configure, build and test termin-scene
         run: |
@@ -58,6 +58,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DTERMIN_SCENE_BUILD_TESTS=ON \
             -DTERMIN_SCENE_ENABLE_PYTHON=OFF \
-            -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/deps/install
+            -DCMAKE_PREFIX_PATH=/opt/termin
           cmake --build build --parallel
           ctest --test-dir build --output-on-failure
