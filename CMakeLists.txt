@@ -140,6 +140,7 @@ if(TERMIN_SCENE_BUILD_PYTHON)
         cpp/bindings/tc_component_ref_bindings.cpp
         cpp/bindings/component_bindings.cpp
         cpp/bindings/component_registry_python.cpp
+        cpp/bindings/transform_bindings.cpp
         cpp/bindings/tc_scene_bindings.cpp
         cpp/bindings/soa_bindings.cpp
         cpp/bindings/tc_component_python_bindings.cpp

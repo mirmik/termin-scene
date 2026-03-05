@@ -11,6 +11,7 @@
 #include <termin/bindings/scene_bindings.hpp>
 #include <termin/bindings/soa_bindings.hpp>
 #include <termin/bindings/tc_component_python_bindings.hpp>
+#include <termin/bindings/transform_bindings.hpp>
 
 namespace nb = nanobind;
 
@@ -26,6 +27,7 @@ NB_MODULE(_scene_native, m) {
     termin::bind_component_registry(m);
     termin::bind_tc_component_ref(m);
     termin::bind_tc_component_python(m);
+    termin::bind_transform(m);
     termin::bind_entity_class(m);
     termin::bind_soa_registry(m);
 }
