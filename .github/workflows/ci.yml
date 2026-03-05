@@ -24,10 +24,12 @@ jobs:
       - name: Install Python dependencies
         run: pip install --upgrade pip setuptools wheel nanobind
 
-      - name: Download termin-inspect SDK
+      - name: Download upstream SDKs
         env:
           GH_TOKEN: ${{ secrets.CLONETOKEN }}
         run: |
+          gh release download sdk-latest -R ${{ github.repository_owner }}/termin-base -p sdk-base.tar.gz -D /tmp
+          sudo tar xzf /tmp/sdk-base.tar.gz -C /
           gh release download sdk-latest -R ${{ github.repository_owner }}/termin-inspect -p sdk-inspect.tar.gz -D /tmp
           sudo tar xzf /tmp/sdk-inspect.tar.gz -C /
 
@@ -51,6 +53,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tar czf /tmp/sdk-scene.tar.gz -C / opt/termin
+          DESTDIR=/tmp/staging cmake --install build
+          tar czf /tmp/sdk-scene.tar.gz -C /tmp/staging opt/termin
           gh release create sdk-latest --title "SDK (latest)" --notes "Auto-built from $(git rev-parse --short HEAD)" --prerelease 2>/dev/null || true
           gh release upload sdk-latest /tmp/sdk-scene.tar.gz --clobber
