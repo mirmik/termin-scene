@@ -11,7 +11,6 @@ option(TERMIN_SCENE_BUILD_TESTS "Build tests" ON)
 
 # Dependencies
 find_package(termin_base REQUIRED)
-find_package(termin_graphics REQUIRED)
 find_package(termin_inspect REQUIRED)
 
 # Optional: nanobind for Python component support
@@ -118,7 +117,7 @@ target_include_directories(termin_scene
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(termin_scene PUBLIC tgfx::termin_graphics tcbase::termin_base termin_inspect::termin_inspect)
+target_link_libraries(termin_scene PUBLIC tcbase::termin_base termin_inspect::termin_inspect)
 
 if(nanobind_FOUND)
     message(STATUS "termin_scene: nanobind found, enabling Python component support")

@@ -1,7 +1,7 @@
 // tc_type_registry.c - Unified type registry implementation
 #include "tc_type_registry.h"
-#include <tgfx/tc_resource_map.h>
-#include <tgfx/tgfx_intern_string.h>
+#include <tcbase/tc_resource_map.h>
+#include <tcbase/tgfx_intern_string.h>
 #include <tcbase/tc_log.h>
 #include <stdlib.h>
 #include <string.h>

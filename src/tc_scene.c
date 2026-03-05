@@ -2,8 +2,8 @@
 #include "core/tc_scene.h"
 #include "core/tc_scene_pool.h"
 #include "core/tc_scene_extension.h"
-#include <tgfx/tc_resource_map.h>
-#include <tgfx/tgfx_intern_string.h>
+#include <tcbase/tc_resource_map.h>
+#include <tcbase/tgfx_intern_string.h>
 #include <tcbase/tc_log.h>
 #include "core/tc_entity_pool_registry.h"
 #include <stdlib.h>
