@@ -3,10 +3,10 @@ from termin.scene._scene_native import (
     Entity,
     TcScene,
     TcComponentRef,
-    GeneralTransform3,
     Component,
     ComponentRegistry,
     TcComponent,
+    GeneralTransform3,
 )
 from termin.scene.python_component import PythonComponent, InputComponent
 
