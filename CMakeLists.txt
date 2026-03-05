@@ -36,6 +36,7 @@ endif()
 
 set(TERMIN_SCENE_SOURCES
     src/termin_scene_version.c
+    src/termin_scene_runtime.c
     src/tc_archetype.c
     src/tc_component.c
     src/tc_entity_pool.c
