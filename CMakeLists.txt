@@ -152,7 +152,13 @@ if(TERMIN_BUILD_PYTHON)
 
     if(TERMIN_SCENE_PYTHON_PREFIX)
         install(TARGETS _scene_native DESTINATION ${TERMIN_SCENE_PYTHON_PREFIX}/scene)
+    else()
+        install(TARGETS _scene_native DESTINATION lib/python/termin/scene)
     endif()
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/termin/scene/
+        DESTINATION lib/python/termin/scene
+        FILES_MATCHING PATTERN "*.py"
+    )
 endif()
 
 if(TERMIN_BUILD_PYTHON AND TARGET nanobind)
