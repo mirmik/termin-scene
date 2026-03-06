@@ -24,11 +24,6 @@ if(TERMIN_BUILD_PYTHON)
         endif()
     endif()
     find_package(Python 3.8 COMPONENTS Interpreter Development REQUIRED)
-    execute_process(
-        COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
-        OUTPUT_VARIABLE nanobind_DIR
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
     find_package(nanobind CONFIG REQUIRED)
 endif()
 
@@ -127,9 +122,6 @@ if(TERMIN_BUILD_PYTHON)
     if(NOT TARGET termin_inspect::termin_inspect_python)
         message(FATAL_ERROR "termin_scene python bindings require termin_inspect::termin_inspect_python target")
     endif()
-    if(NOT TARGET nanobind)
-        nanobind_build_library(nanobind)
-    endif()
     nanobind_add_module(_scene_native NB_SHARED
         cpp/bindings/scene_module.cpp
         cpp/bindings/entity_bindings.cpp
@@ -161,13 +153,6 @@ if(TERMIN_BUILD_PYTHON)
     )
 endif()
 
-if(TERMIN_BUILD_PYTHON AND TARGET nanobind)
-    install(TARGETS nanobind
-        EXPORT termin_sceneTargets
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin
-    )
-endif()
 
 install(TARGETS termin_scene
     EXPORT termin_sceneTargets
